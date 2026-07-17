@@ -70,7 +70,7 @@ Action_Generate_Status() {
         iptables_count=$(iptables-save | grep -c "NFQUEUE.*--queue-num 300")
     fi
     
-    cat <<EOF > "/www/user/zapret-status.json"
+    cat <<EOF > "/www/user/zapret-status.asp"
 {
   "status": "${status}",
   "pid": "${pid}",
