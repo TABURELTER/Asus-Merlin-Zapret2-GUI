@@ -22,11 +22,11 @@ Merlin_Mount() {
             page="$am_webui_page"
             am_settings_set zapret2gui_page "$page"
         else
-            cp -f "$asp_src" "/www/user/$page" 2>/dev/null
+            cp -f "$asp_src" "/www/user/$page"
         fi
     else
         page="zapret2-gui.asp"
-        cp -f "$asp_src" "/www/user/$page" 2>/dev/null
+        cp -f "$asp_src" "/www/user/$page"
     fi
 
     # Unmount if already mounted to avoid copy failure

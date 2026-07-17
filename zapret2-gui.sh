@@ -1,7 +1,8 @@
 #!/bin/sh
 # zapret2-gui.sh - Main dispatcher for Asus-Merlin-Zapret2-GUI
 
-ADDON_DIR="$(dirname "$(readlink -f "$0")")"
+# Hardcode ADDON_DIR since readlink -f can fail in some busybox environments
+ADDON_DIR="/jffs/addons/zapret2-gui"
 export PATH="/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
 
 . "${ADDON_DIR}/lib/merlin.sh"
