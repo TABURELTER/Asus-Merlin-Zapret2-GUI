@@ -131,7 +131,7 @@ Action_Apply() {
     Log "Generated NFQWS2_OPT: $opt"
     
     local block
-    block=$(printf "NFQWS_ENABLE=0\nTPWS_SOCKS_ENABLE=0\nTPWS_ENABLE=%s\nTPWS_PORTS=%s\nTPWS_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
+    block=$(printf "IFACE_LAN=br0\nNFQWS_ENABLE=0\nTPWS_SOCKS_ENABLE=0\nTPWS_ENABLE=%s\nTPWS_PORTS=%s\nTPWS_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
     
     Log "Applying config block..."
     touch /opt/zapret/ipset/zapret-hosts-user.txt 2>/dev/null
