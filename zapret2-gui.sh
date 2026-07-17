@@ -73,7 +73,7 @@ Action_Generate_Status() {
         log_tail=$(tail -n 20 /tmp/zapret2-gui.log | sed 's/\\/\\\\/g; s/"/\\"/g; s/\//\\\//g; s/$/\\n/g' | tr -d '\n')
     fi
     
-    cat <<EOF > "/www/user/zapret-status.asp"
+    cat <<EOF > "/www/user/user3.asp"
 {
   "status": "${status}",
   "pid": "${pid}",

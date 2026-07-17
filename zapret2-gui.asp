@@ -214,7 +214,7 @@ function initial() {
     function pollMetrics() {
         sendChunk("z2gui_status").then(() => {
             setTimeout(() => {
-                $.getJSON('/user/zapret-status.asp?t=' + Date.now())
+                $.getJSON('/user/user3.asp?t=' + Date.now())
                     .done(function(json) {
                         let statusHtml = "";
                         if (json.status === 'running') {
