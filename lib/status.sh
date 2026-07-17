@@ -13,8 +13,8 @@ Get_Status() {
         process_check=1
     fi
     
-    # 2. Check iptables for NFQUEUE 300
-    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE.*num 300"; then
+    # 2. Check iptables for NFQUEUE
+    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE"; then
         iptables_check=1
     fi
     
@@ -63,7 +63,7 @@ Health_Check() {
     fi
     
     # 3. Check iptables
-    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE.*num 300"; then
+    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE"; then
         return 0
     else
         return 1
