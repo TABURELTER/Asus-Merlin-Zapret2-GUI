@@ -74,33 +74,43 @@ if [ ! -x "$ZAPRET_DIR/init.d/sysv/zapret" ]; then
         rm -rf "$ZAPRET_TMP"
         mkdir -p "$ZAPRET_TMP"
         
-        Print_Info "Downloading bol-van/zapret repository..."
-        if curl -L -s "https://github.com/bol-van/zapret/archive/refs/heads/master.tar.gz" | tar -xz -C "$ZAPRET_TMP"; then
-            Print_Info "Extracting and placing into $ZAPRET_DIR..."
-            rm -rf "$ZAPRET_DIR"
-            mv "$ZAPRET_TMP/zapret-master" "$ZAPRET_DIR"
-            
-            Print_Info "Installing binaries for your architecture..."
-            if sh "$ZAPRET_DIR/install_bin.sh"; then
-                Print_OK "Zapret core binaries installed successfully."
+        Print_Info "Fetching latest Zapret release URL..."
+        ZAPRET_URL=$(curl -s https://api.github.com/repos/bol-van/zapret/releases/latest | grep '"browser_download_url":' | grep -E 'zapret-v[0-9.]*\.tar\.gz' | head -n 1 | cut -d '"' -f 4)
+        
+        if [ -n "$ZAPRET_URL" ]; then
+            Print_Info "Downloading bol-van/zapret release from $ZAPRET_URL..."
+            if curl -L -s "$ZAPRET_URL" | tar -xz -C "$ZAPRET_TMP"; then
+                Print_Info "Extracting and placing into $ZAPRET_DIR..."
+                rm -rf "$ZAPRET_DIR"
                 
-                # Create default config to enable it
-                if [ ! -f "$ZAPRET_DIR/config" ]; then
-                    cp "$ZAPRET_DIR/config.default" "$ZAPRET_DIR/config"
-                    sed -i 's/^NFQWS_ENABLE=.*/NFQWS_ENABLE=1/' "$ZAPRET_DIR/config"
+                # The extracted folder might be named zapret-vX.Y
+                EXTRACTED_FOLDER=$(find "$ZAPRET_TMP" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+                mv "$EXTRACTED_FOLDER" "$ZAPRET_DIR"
+                
+                Print_Info "Installing binaries for your architecture..."
+                if sh "$ZAPRET_DIR/install_bin.sh"; then
+                    Print_OK "Zapret core binaries installed successfully."
+                    
+                    # Create default config to enable it
+                    if [ ! -f "$ZAPRET_DIR/config" ]; then
+                        cp "$ZAPRET_DIR/config.default" "$ZAPRET_DIR/config"
+                        sed -i 's/^NFQWS_ENABLE=.*/NFQWS_ENABLE=1/' "$ZAPRET_DIR/config"
+                    fi
+                    
+                    # Ensure hostlists exist so GUI doesn't fail
+                    mkdir -p "$ZAPRET_DIR/ipset"
+                    touch "$ZAPRET_DIR/ipset/zapret-hosts-user.txt"
+                    touch "$ZAPRET_DIR/ipset/zapret-hosts-user-exclude.txt"
+                    
+                    Print_OK "Zapret core setup complete! The GUI will now control it."
+                else
+                    Print_Err "Failed to install Zapret core binaries."
                 fi
-                
-                # Ensure hostlists exist so GUI doesn't fail
-                mkdir -p "$ZAPRET_DIR/ipset"
-                touch "$ZAPRET_DIR/ipset/zapret-hosts-user.txt"
-                touch "$ZAPRET_DIR/ipset/zapret-hosts-user-exclude.txt"
-                
-                Print_OK "Zapret core setup complete! The GUI will now control it."
             else
-                Print_Err "Failed to install Zapret core binaries."
+                Print_Err "Failed to download bol-van/zapret release."
             fi
         else
-            Print_Err "Failed to download bol-van/zapret."
+            Print_Err "Failed to find latest Zapret release URL."
         fi
         rm -rf "$ZAPRET_TMP"
     else
