@@ -7,6 +7,7 @@ export PATH="/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
 
 . "${ADDON_DIR}/lib/merlin.sh"
 . "${ADDON_DIR}/lib/config.sh"
+. "${ADDON_DIR}/lib/lock.sh"
 . "${ADDON_DIR}/lib/strategy.sh"
 . "${ADDON_DIR}/lib/status.sh"
 . "${ADDON_DIR}/lib/safe_apply.sh"
