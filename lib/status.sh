@@ -8,7 +8,7 @@ Get_Status() {
     
     # 1. Check if process is running
     local pid
-    pid=$(pidof nfqws2 2>/dev/null)
+    pid=$(pidof nfqws 2>/dev/null)
     if [ -n "$pid" ]; then
         process_check=1
     fi
@@ -40,7 +40,7 @@ Health_Check() {
     
     # 1. Check if process is running
     local pid
-    pid=$(pidof nfqws2 2>/dev/null)
+    pid=$(pidof nfqws 2>/dev/null)
     if [ -z "$pid" ]; then
         return 1
     fi

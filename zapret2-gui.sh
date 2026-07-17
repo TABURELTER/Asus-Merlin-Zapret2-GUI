@@ -130,7 +130,7 @@ Action_Apply() {
     Log "Generated NFQWS2_OPT: $opt"
     
     local block
-    block=$(printf "NFQWS2_ENABLE=%s\nNFQWS2_PORTS_TCP=%s\nNFQWS2_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
+    block=$(printf "NFQWS_ENABLE=%s\nNFQWS_PORTS_TCP=%s\nNFQWS_PORTS_UDP=443\nNFQWS_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
     
     Log "Applying config block..."
     echo "$block" | Config_Apply_Block
