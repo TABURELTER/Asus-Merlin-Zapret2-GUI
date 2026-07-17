@@ -97,7 +97,8 @@ Action_Apply() {
     fi
     
     # decode base64url. Note: busybox base64 might need -d. Using openssl or tr+base64.
-    local json
+    # We use a simple key-value plaintext payload now to avoid JSON quoting issues
+    local raw
     # Convert base64url back to standard base64 (replace - with +, _ with /)
     local b64_std
     b64_std=$(echo "$b64_payload" | tr '_-' '/+')
@@ -105,20 +106,20 @@ Action_Apply() {
     while [ $((${#b64_std} % 4)) -ne 0 ]; do b64_std="${b64_std}="; done
 
     if command -v openssl >/dev/null 2>&1; then
-        json=$(echo "$b64_std" | openssl base64 -d -A 2>/dev/null)
+        raw=$(echo "$b64_std" | openssl base64 -d -A 2>/dev/null)
     else
-        json=$(echo "$b64_std" | base64 -d 2>/dev/null)
+        raw=$(echo "$b64_std" | base64 -d 2>/dev/null)
     fi
     
-    # Parse JSON (basic string matching, no jq)
+    # Extract fields
     local enable
-    enable=$(echo "$json" | sed -n 's/.*"enable":"\([^"]*\)".*/\1/p')
+    enable=$(echo "$raw" | grep "^enable=" | cut -d= -f2-)
     local mode
-    mode=$(echo "$json" | sed -n 's/.*"mode":"\([^"]*\)".*/\1/p')
+    mode=$(echo "$raw" | grep "^mode=" | cut -d= -f2-)
     local ports
-    ports=$(echo "$json" | sed -n 's/.*"ports":"\([^"]*\)".*/\1/p')
+    ports=$(echo "$raw" | grep "^ports=" | cut -d= -f2-)
     local custom_opt
-    custom_opt=$(echo "$json" | sed -n 's/.*"custom_opt":"\([^"]*\)".*/\1/p')
+    custom_opt=$(echo "$raw" | grep "^custom_opt=" | cut -d= -f2- | sed 's/@@NL@@/\n/g')
     
     local opt
     opt=$(Strategy_Generate_Opt "$mode" "$ports" "$custom_opt")

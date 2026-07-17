@@ -154,8 +154,12 @@ function initial() {
             custom_opt: document.getElementById('custom_opt').value
         };
         
-        const jsonStr = JSON.stringify(data);
-        const b64Str = b64urlEncode(jsonStr);
+        let safeCustom = data.custom_opt.replace(/\n/g, '@@NL@@').replace(/\r/g, '');
+        const str = "enable=" + data.enable + "\n" +
+                    "mode=" + data.mode + "\n" +
+                    "ports=" + data.ports + "\n" +
+                    "custom_opt=" + safeCustom;
+        const b64Str = b64urlEncode(str);
         const chunks = b64Str.match(/.{1,100}/g) || [];
         
         const btn = document.getElementById('btnApply');
