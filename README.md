@@ -13,9 +13,8 @@ A completely modular WebUI Addon for AsusWRT-Merlin to manage the `zapret2` DPI 
 
 Run the following command on your router via SSH:
 ```sh
-curl -L -s https://raw.githubusercontent.com/username/Asus-Merlin-Zapret2-GUI/main/install.sh | sh
+curl -L -s https://raw.githubusercontent.com/TABURELTER/Asus-Merlin-Zapret2-GUI/main/install.sh | sh
 ```
-*(Replace `username` with your GitHub username once published).*
 
 ## Architecture
 The addon avoids large monolithic shell scripts and instead categorizes behavior:

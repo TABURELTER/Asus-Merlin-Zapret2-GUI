@@ -2,14 +2,32 @@
 # install.sh - Installer for Asus-Merlin-Zapret2-GUI
 
 ADDON_DIR="/jffs/addons/zapret2-gui"
-SRC_DIR="$(dirname "$(readlink -f "$0")")"
+REPO="TABURELTER/Asus-Merlin-Zapret2-GUI"
+BRANCH="main"
+TAR_URL="https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz"
 
-echo "Installing Asus-Merlin-Zapret2-GUI..."
+echo "Installing Asus-Merlin-Zapret2-GUI from ${REPO}..."
 
 mkdir -p "$ADDON_DIR/lib"
-cp -f "$SRC_DIR/zapret2-gui.sh" "$ADDON_DIR/"
-cp -f "$SRC_DIR/zapret2-gui.asp" "$ADDON_DIR/"
-cp -f "$SRC_DIR/lib/"*.sh "$ADDON_DIR/lib/"
+TMP_DIR="/tmp/zapret2-gui-install"
+rm -rf "$TMP_DIR"
+mkdir -p "$TMP_DIR"
+
+echo "Downloading files..."
+curl -L -s "$TAR_URL" | tar -xz -C "$TMP_DIR"
+
+EXTRACTED_DIR="${TMP_DIR}/Asus-Merlin-Zapret2-GUI-${BRANCH}"
+
+if [ ! -d "$EXTRACTED_DIR" ]; then
+    echo "Error: Failed to download or extract the repository."
+    rm -rf "$TMP_DIR"
+    exit 1
+fi
+
+cp -f "$EXTRACTED_DIR/zapret2-gui.sh" "$ADDON_DIR/"
+cp -f "$EXTRACTED_DIR/zapret2-gui.asp" "$ADDON_DIR/"
+cp -f "$EXTRACTED_DIR/lib/"*.sh "$ADDON_DIR/lib/"
+rm -rf "$TMP_DIR"
 
 chmod +x "$ADDON_DIR/zapret2-gui.sh"
 for f in "$ADDON_DIR/lib/"*.sh; do
