@@ -1,0 +1,4 @@
+#!/bin/sh
+if [ "$1" = "nfqws2" ] && [ -f "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_nfqws2_pid" ]; then
+    cat "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_nfqws2_pid"
+fi

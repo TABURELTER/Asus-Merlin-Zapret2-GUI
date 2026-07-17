@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ -f "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_iptables_ok" ]; then
+    echo "NFQUEUE num 300"
+else
+    echo "something else"
+fi

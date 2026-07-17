@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ "$1" = "restart" ]; then
+    if [ -f "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_restart_fail" ]; then
+        exit 1
+    fi
+    echo "12345" > "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_nfqws2_pid"
+    mkdir -p "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/proc/12345"
+    echo -n "--lua-desync=fake" > "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/proc/12345/cmdline"
+    touch "/Users/tab/Downloads/Asus-Merlin-Zapret2-GUI/tmp-tests/mock_iptables_ok"
+    exit 0
+fi
