@@ -11,6 +11,11 @@ export PATH="/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
 . "${ADDON_DIR}/lib/status.sh"
 . "${ADDON_DIR}/lib/safe_apply.sh"
 
+Log() {
+    local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "$msg" >> /tmp/zapret2-gui.log
+}
+
 Action_Mount() {
     Merlin_Mount "$ADDON_DIR"
 }
@@ -45,29 +50,27 @@ Action_Event() {
 }
 
 Action_Generate_Status() {
-    local pid
-    pid=$(pidof nfqws2 | awk '{print $1}')
-    
     local status="stopped"
-    local cpu_ram="N/A"
-    local iptables_count=0
+    local pid=""
     
-    if [ -n "$pid" ]; then
+    if pidof nfqws >/dev/null; then
         status="running"
-        # Get CPU and RAM using ps/top. Busybox ps might differ, top -n1 -p PID is safer
-        # Let's just use top -n1 | grep PID if we can, or just basic ps output
-        # Format of ps: PID USER       VSZ STAT COMMAND
-        local ps_out
-        ps_out=$(ps -w | grep -E "^[ ]*${pid} " | head -n 1)
-        if [ -n "$ps_out" ]; then
-            # Extract VSZ (virtual size)
-            local vsz
-            vsz=$(echo "$ps_out" | awk '{print $3}')
-            cpu_ram="${vsz} KB RAM"
-        fi
-        
-        # Count iptables hooks
+        pid=$(pidof nfqws | head -n 1)
+    fi
+    
+    local cpu_ram="N/A"
+    if [ -n "$pid" ]; then
+        cpu_ram=$(top -b -n 1 | grep "^\s*$pid " | awk '{print "CPU: "$8"% / RAM: "$7"%"}')
+    fi
+    
+    local iptables_count="0"
+    if command -v iptables-save >/dev/null 2>&1; then
         iptables_count=$(iptables-save | grep -c "NFQUEUE.*--queue-num 300")
+    fi
+    
+    local log_tail=""
+    if [ -f "/tmp/zapret2-gui.log" ]; then
+        log_tail=$(tail -n 20 /tmp/zapret2-gui.log | sed 's/\\/\\\\/g; s/"/\\"/g; s/\//\\\//g; s/$/\\n/g' | tr -d '\n')
     fi
     
     cat <<EOF > "/www/user/zapret-status.asp"
@@ -75,34 +78,33 @@ Action_Generate_Status() {
   "status": "${status}",
   "pid": "${pid}",
   "cpu_ram": "${cpu_ram}",
-  "iptables_count": "${iptables_count}"
+  "iptables_count": "${iptables_count}",
+  "log": "${log_tail}"
 }
 EOF
 }
 
 Action_Apply() {
     local payload_file="$1"
+    Log "Action_Apply started."
     
     if [ ! -f "$payload_file" ]; then
-        echo "Error: Payload file not found."
+        Log "Error: Payload file not found."
         return 1
     fi
     
     local b64_payload
     b64_payload=$(cat "$payload_file" 2>/dev/null)
+    Log "Payload length: ${#b64_payload}"
     
     if [ -z "$b64_payload" ]; then
-        echo "Error: Payload is empty."
+        Log "Error: Payload is empty."
         return 1
     fi
     
-    # decode base64url. Note: busybox base64 might need -d. Using openssl or tr+base64.
-    # We use a simple key-value plaintext payload now to avoid JSON quoting issues
     local raw
-    # Convert base64url back to standard base64 (replace - with +, _ with /)
     local b64_std
     b64_std=$(echo "$b64_payload" | tr '_-' '/+')
-    # Add padding if needed
     while [ $((${#b64_std} % 4)) -ne 0 ]; do b64_std="${b64_std}="; done
 
     if command -v openssl >/dev/null 2>&1; then
@@ -110,8 +112,8 @@ Action_Apply() {
     else
         raw=$(echo "$b64_std" | base64 -d 2>/dev/null)
     fi
+    Log "Decoded raw payload length: ${#raw}"
     
-    # Extract fields
     local enable
     enable=$(echo "$raw" | grep "^enable=" | cut -d= -f2-)
     local mode
@@ -121,26 +123,29 @@ Action_Apply() {
     local custom_opt
     custom_opt=$(echo "$raw" | grep "^custom_opt=" | cut -d= -f2- | sed 's/@@NL@@/\n/g')
     
+    Log "Parsed -> enable=${enable}, mode=${mode}, ports=${ports}"
+    
     local opt
     opt=$(Strategy_Generate_Opt "$mode" "$ports" "$custom_opt")
+    Log "Generated NFQWS2_OPT: $opt"
     
     local block
     block=$(printf "NFQWS2_ENABLE=%s\nNFQWS2_PORTS_TCP=%s\nNFQWS2_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
     
-    # Apply to config
+    Log "Applying config block..."
     echo "$block" | Config_Apply_Block
     
-    # Trigger safe apply
+    Log "Triggering Safe_Apply..."
     Safe_Apply "$opt"
+    Log "Safe_Apply complete."
     
-    # Clean up payload
     rm -f "$payload_file"
 }
 
 case "$1" in
     mount) Action_Mount ;;
     unmount) Action_Unmount ;;
-    status) Action_Status ;;
+    status) Action_Generate_Status ;;
     event) Action_Event "$2" ;;
     *) echo "Usage: $0 {mount|unmount|status|event}"; exit 1 ;;
 esac

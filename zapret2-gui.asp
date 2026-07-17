@@ -120,6 +120,16 @@ function initial() {
                       <input type="button" id="btnApply" value="Apply Settings" onclick="applySettings();" class="button_gen">
                   </div>
 
+                  <div style="margin:20px 0 10px 5px;" class="splitLine"></div>
+                  <div class="formfonttitle">System Logs</div>
+                  <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" class="FormTable">
+                      <tr>
+                          <td style="padding:0;">
+                              <textarea id="metric-log" class="custom-opt" style="width:100%; height:200px; border:none; resize:none;" readonly>Waiting for logs...</textarea>
+                          </td>
+                      </tr>
+                  </table>
+
               </td>
               </tr>
               </tbody>
@@ -132,6 +142,8 @@ function initial() {
   </tr>
 </table>
 </form>
+
+<div id="footer"></div>
 
 <script>
     function toggleCustom() {
@@ -213,6 +225,15 @@ function initial() {
                         document.getElementById('metric-status').innerHTML = statusHtml;
                         document.getElementById('metric-cpu').innerText = json.cpu_ram || 'N/A';
                         document.getElementById('metric-iptables').innerText = json.iptables_count + ' active hooks';
+                        
+                        if (json.log) {
+                            const logEl = document.getElementById('metric-log');
+                            const isScrolledToBottom = logEl.scrollHeight - logEl.clientHeight <= logEl.scrollTop + 1;
+                            logEl.value = json.log;
+                            if (isScrolledToBottom) {
+                                logEl.scrollTop = logEl.scrollHeight;
+                            }
+                        }
                     })
                     .always(function() {
                         setTimeout(pollMetrics, 5000);
