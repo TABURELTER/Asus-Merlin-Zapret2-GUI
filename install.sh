@@ -84,8 +84,13 @@ if [ ! -x "$ZAPRET_DIR/init.d/sysv/zapret" ]; then
                 rm -rf "$ZAPRET_DIR"
                 
                 # The extracted folder might be named zapret-vX.Y
-                EXTRACTED_FOLDER=$(find "$ZAPRET_TMP" -mindepth 1 -maxdepth 1 -type d | head -n 1)
-                mv "$EXTRACTED_FOLDER" "$ZAPRET_DIR"
+                EXTRACTED_FOLDER=$(ls -d "$ZAPRET_TMP"/zapret*/ 2>/dev/null | head -n 1)
+                
+                if [ -n "$EXTRACTED_FOLDER" ]; then
+                    mv "$EXTRACTED_FOLDER" "$ZAPRET_DIR"
+                else
+                    Print_Err "Could not locate extracted zapret directory."
+                fi
                 
                 Print_Info "Installing binaries for your architecture..."
                 if sh "$ZAPRET_DIR/install_bin.sh"; then
