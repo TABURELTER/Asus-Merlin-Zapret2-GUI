@@ -131,9 +131,10 @@ Action_Apply() {
     Log "Generated NFQWS2_OPT: $opt"
     
     local block
-    block=$(printf "NFQWS_ENABLE=%s\nNFQWS_PORTS_TCP=%s\nNFQWS_PORTS_UDP=443\nNFQWS_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
+    block=$(printf "TPWS_ENABLE=%s\nTPWS_PORTS=%s\nTPWS_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
     
     Log "Applying config block..."
+    touch /opt/zapret/ipset/zapret-hosts-user.txt 2>/dev/null
     echo "$block" | Config_Apply_Block
     
     Log "Triggering Safe_Apply..."
