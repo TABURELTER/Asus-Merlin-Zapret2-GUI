@@ -63,12 +63,12 @@ if [ ! -f "$SERVICE_EVENT" ]; then
     chmod +x "$SERVICE_EVENT"
 fi
 
-if ! grep -q "restart_zapret2gui_apply" "$SERVICE_EVENT"; then
+if ! grep -q "z2gui_" "$SERVICE_EVENT"; then
     cat << 'EOF' >> "$SERVICE_EVENT"
 
-if [ "$1" = "restart_zapret2gui_apply" ]; then
-    /jffs/addons/zapret2-gui/zapret2-gui.sh apply &
-fi
+case "$1" in
+    z2gui_*) /jffs/addons/zapret2-gui/zapret2-gui.sh event "$1" & ;;
+esac
 EOF
 fi
 

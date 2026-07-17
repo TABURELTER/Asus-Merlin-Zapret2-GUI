@@ -23,8 +23,26 @@ Action_Status() {
     Get_Status
 }
 
+Action_Event() {
+    local evt="$1"
+    local payload_file="/tmp/.zapret2gui.payload"
+    
+    case "$evt" in
+        z2gui_start)
+            rm -f "$payload_file"
+            ;;
+        z2gui_chk_*)
+            local chunk="${evt#z2gui_chk_}"
+            echo -n "$chunk" >> "$payload_file"
+            ;;
+        z2gui_apply)
+            Action_Apply "$payload_file"
+            ;;
+    esac
+}
+
 Action_Apply() {
-    local payload_file="/www/user/.zapret2gui.apply"
+    local payload_file="$1"
     
     if [ ! -f "$payload_file" ]; then
         echo "Error: Payload file not found."
@@ -39,12 +57,18 @@ Action_Apply() {
         return 1
     fi
     
-    # decode base64. Note: busybox base64 might need -d. Using openssl or base64.
+    # decode base64url. Note: busybox base64 might need -d. Using openssl or tr+base64.
     local json
+    # Convert base64url back to standard base64 (replace - with +, _ with /)
+    local b64_std
+    b64_std=$(echo "$b64_payload" | tr '_-' '/+')
+    # Add padding if needed
+    while [ $((${#b64_std} % 4)) -ne 0 ]; do b64_std="${b64_std}="; done
+
     if command -v openssl >/dev/null 2>&1; then
-        json=$(echo "$b64_payload" | openssl base64 -d -A 2>/dev/null)
+        json=$(echo "$b64_std" | openssl base64 -d -A 2>/dev/null)
     else
-        json=$(echo "$b64_payload" | base64 -d 2>/dev/null)
+        json=$(echo "$b64_std" | base64 -d 2>/dev/null)
     fi
     
     # Parse JSON (basic string matching, no jq)
@@ -60,8 +84,6 @@ Action_Apply() {
     local opt
     opt=$(Strategy_Generate_Opt "$mode" "$ports" "$custom_opt")
     
-    # Generate the config block
-    # We use printf to preserve newlines safely
     local block
     block=$(printf "NFQWS2_ENABLE=%s\nNFQWS2_PORTS_TCP=%s\nNFQWS2_OPT=\"\n%s\n\"\n" "$enable" "$ports" "$opt")
     
@@ -79,6 +101,6 @@ case "$1" in
     mount) Action_Mount ;;
     unmount) Action_Unmount ;;
     status) Action_Status ;;
-    apply) Action_Apply ;;
-    *) echo "Usage: $0 {mount|unmount|status|apply}"; exit 1 ;;
+    event) Action_Event "$2" ;;
+    *) echo "Usage: $0 {mount|unmount|status|event}"; exit 1 ;;
 esac

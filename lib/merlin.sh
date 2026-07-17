@@ -35,6 +35,7 @@ Merlin_Mount() {
     
     # Remove old entry if exists to prevent duplicates
     sed -i -e "/tabName: 'Zapret2'/d" "$menutree_tmp"
+    sed -i -e "/zapret2-gui.asp/d" "$menutree_tmp"
     
     # Inject our menu item right after the anchor using tabName (AsusWRT format)
     sed -i -e "/${anchor}/a \\

@@ -73,7 +73,14 @@
         document.getElementById('custom-group').style.display = mode === 'custom' ? 'block' : 'none';
     }
 
-    function applySettings() {
+    function b64urlEncode(str) {
+        return btoa(unescape(encodeURIComponent(str)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+    }
+
+    async function applySettings() {
         const data = {
             enable: document.getElementById('enable').value,
             mode: document.getElementById('mode').value,
@@ -82,16 +89,41 @@
         };
         
         const jsonStr = JSON.stringify(data);
-        const b64Str = btoa(unescape(encodeURIComponent(jsonStr)));
+        const b64Str = b64urlEncode(jsonStr);
+        const chunks = b64Str.match(/.{1,100}/g) || [];
         
-        // As requested: save via fetch to the static file path, then trigger apply.cgi
-        fetch('/user/.zapret2gui.apply', {
-            method: 'POST',
-            body: b64Str
-        }).then(() => {
-            document.getElementById('hidden_form').submit();
-        }).catch(err => {
-            alert("Failed to write payload: " + err);
+        document.getElementById('status-text').innerText = 'Applying...';
+        document.getElementById('status-panel').className = 'status';
+
+        try {
+            await sendChunk("z2gui_start");
+            for (let i = 0; i < chunks.length; i++) {
+                await sendChunk("z2gui_chk_" + chunks[i]);
+            }
+            await sendChunk("z2gui_apply");
+            
+            setTimeout(() => {
+                document.getElementById('status-text').innerText = 'Settings Applied!';
+                document.getElementById('status-panel').className = 'status running';
+            }, 1000);
+        } catch (err) {
+            alert("Failed to apply settings: " + err);
+        }
+    }
+
+    function sendChunk(action_script) {
+        return new Promise((resolve, reject) => {
+            const formData = new URLSearchParams();
+            formData.append('action_mode', 'Update');
+            formData.append('action_script', action_script);
+            formData.append('action_wait', '1');
+            formData.append('current_page', document.querySelector('input[name="current_page"]').value);
+
+            fetch('/apply.cgi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            }).then(res => resolve(res)).catch(err => reject(err));
         });
     }
 
