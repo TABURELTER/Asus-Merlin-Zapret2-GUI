@@ -1,7 +1,7 @@
 #!/bin/sh
 # lib/config.sh - Read/Write zapret config safely
 
-ZAPRET_CONFIG="/opt/zapret2/config"
+ZAPRET_CONFIG="/opt/zapret/config"
 
 Config_Read() {
     local key="$1"
@@ -20,6 +20,8 @@ Config_Read() {
 Config_Apply_Block() {
     local config_file="${1:-$ZAPRET_CONFIG}"
     local tmp_conf="/tmp/zapret2.conf.tmp"
+    
+    mkdir -p "$(dirname "$config_file")" 2>/dev/null
     
     if [ ! -f "$config_file" ]; then
         touch "$config_file" 2>/dev/null

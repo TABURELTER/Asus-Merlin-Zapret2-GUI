@@ -3,9 +3,9 @@
 
 # Note: Assumes lock.sh and status.sh are already sourced by dispatcher
 
-ZAPRET_INIT="/opt/zapret2/init.d/sysv/zapret2"
-ZAPRET_CONFIG="/opt/zapret2/config"
-ZAPRET_CONFIG_BAK="/opt/zapret2/config.bak-gui"
+ZAPRET_INIT="/opt/zapret/init.d/sysv/zapret"
+ZAPRET_CONFIG="/opt/zapret/config"
+ZAPRET_CONFIG_BAK="/opt/zapret/config.bak-gui"
 
 Safe_Apply() {
     local target_opt="$1"
@@ -15,13 +15,19 @@ Safe_Apply() {
         return 1
     fi
     
+    if [ ! -f "$ZAPRET_INIT" ]; then
+        echo "CRITICAL: Zapret is not installed! Missing $ZAPRET_INIT"
+        Lock_Release
+        return 1
+    fi
+    
     # Backup
     if [ -f "$ZAPRET_CONFIG" ]; then
         cp -f "$ZAPRET_CONFIG" "$ZAPRET_CONFIG_BAK"
     fi
     
     # Restart zapret2 with a timeout (e.g. 30 seconds)
-    echo "Restarting zapret2..."
+    echo "Restarting zapret..."
     if ! Run_With_Timeout 30 "$ZAPRET_INIT" restart; then
         echo "Restart command timed out or failed!"
         Rollback

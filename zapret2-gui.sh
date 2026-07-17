@@ -107,7 +107,7 @@ Action_Apply() {
     b64_std=$(echo "$b64_payload" | tr '_-' '/+')
     while [ $((${#b64_std} % 4)) -ne 0 ]; do b64_std="${b64_std}="; done
 
-    if command -v openssl >/dev/null 2>&1; then
+    if which openssl >/dev/null 2>&1; then
         raw=$(echo "$b64_std" | openssl base64 -d -A 2>/dev/null)
     else
         raw=$(echo "$b64_std" | base64 -d 2>/dev/null)
