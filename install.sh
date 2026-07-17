@@ -61,6 +61,57 @@ cp -f "$EXTRACTED_DIR/zapret2-gui.asp" "$ADDON_DIR/"
 cp -f "$EXTRACTED_DIR/lib/"*.sh "$ADDON_DIR/lib/"
 rm -rf "$TMP_DIR"
 
+Print_Info "Checking for zapret core installation..."
+ZAPRET_DIR="/opt/zapret"
+if [ ! -x "$ZAPRET_DIR/init.d/sysv/zapret" ]; then
+    Print_Warn "Zapret core not found in $ZAPRET_DIR. Attempting automatic installation..."
+    
+    # Check if /opt is writable
+    if touch /opt/.zapret_test_write 2>/dev/null; then
+        rm -f /opt/.zapret_test_write
+        
+        ZAPRET_TMP="/tmp/zapret-install"
+        rm -rf "$ZAPRET_TMP"
+        mkdir -p "$ZAPRET_TMP"
+        
+        Print_Info "Downloading bol-van/zapret repository..."
+        if curl -L -s "https://github.com/bol-van/zapret/archive/refs/heads/master.tar.gz" | tar -xz -C "$ZAPRET_TMP"; then
+            Print_Info "Extracting and placing into $ZAPRET_DIR..."
+            rm -rf "$ZAPRET_DIR"
+            mv "$ZAPRET_TMP/zapret-master" "$ZAPRET_DIR"
+            
+            Print_Info "Installing binaries for your architecture..."
+            if sh "$ZAPRET_DIR/install_bin.sh"; then
+                Print_OK "Zapret core binaries installed successfully."
+                
+                # Create default config to enable it
+                if [ ! -f "$ZAPRET_DIR/config" ]; then
+                    cp "$ZAPRET_DIR/config.default" "$ZAPRET_DIR/config"
+                    sed -i 's/^NFQWS_ENABLE=.*/NFQWS_ENABLE=1/' "$ZAPRET_DIR/config"
+                fi
+                
+                # Ensure hostlists exist so GUI doesn't fail
+                mkdir -p "$ZAPRET_DIR/ipset"
+                touch "$ZAPRET_DIR/ipset/zapret-hosts-user.txt"
+                touch "$ZAPRET_DIR/ipset/zapret-hosts-user-exclude.txt"
+                
+                Print_OK "Zapret core setup complete! The GUI will now control it."
+            else
+                Print_Err "Failed to install Zapret core binaries."
+            fi
+        else
+            Print_Err "Failed to download bol-van/zapret."
+        fi
+        rm -rf "$ZAPRET_TMP"
+    else
+        Print_Err "Directory /opt is not writable! Cannot auto-install zapret core."
+        Print_Warn "Please plug in a USB drive and install Entware (via amtm) first."
+    fi
+else
+    Print_OK "Zapret core is already installed in $ZAPRET_DIR."
+fi
+
+
 Print_Info "Setting file permissions..."
 chmod +x "$ADDON_DIR/zapret2-gui.sh"
 for f in "$ADDON_DIR/lib/"*.sh; do
