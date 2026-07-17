@@ -38,7 +38,46 @@ Action_Event() {
         z2gui_apply)
             Action_Apply "$payload_file"
             ;;
+        z2gui_status)
+            Action_Generate_Status
+            ;;
     esac
+}
+
+Action_Generate_Status() {
+    local pid
+    pid=$(pidof nfqws2 | awk '{print $1}')
+    
+    local status="stopped"
+    local cpu_ram="N/A"
+    local iptables_count=0
+    
+    if [ -n "$pid" ]; then
+        status="running"
+        # Get CPU and RAM using ps/top. Busybox ps might differ, top -n1 -p PID is safer
+        # Let's just use top -n1 | grep PID if we can, or just basic ps output
+        # Format of ps: PID USER       VSZ STAT COMMAND
+        local ps_out
+        ps_out=$(ps -w | grep -E "^[ ]*${pid} " | head -n 1)
+        if [ -n "$ps_out" ]; then
+            # Extract VSZ (virtual size)
+            local vsz
+            vsz=$(echo "$ps_out" | awk '{print $3}')
+            cpu_ram="${vsz} KB RAM"
+        fi
+        
+        # Count iptables hooks
+        iptables_count=$(iptables-save | grep -c "NFQUEUE.*--queue-num 300")
+    fi
+    
+    cat <<EOF > "/www/user/zapret-status.json"
+{
+  "status": "${status}",
+  "pid": "${pid}",
+  "cpu_ram": "${cpu_ram}",
+  "iptables_count": "${iptables_count}"
+}
+EOF
 }
 
 Action_Apply() {

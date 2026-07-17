@@ -21,7 +21,20 @@ Strategy_Generate_Opt() {
             opt="${opt} --payload=tls_client_hello --lua-desync=fake,multisplit --new"
             ;;
         custom)
-            opt="$custom_opt"
+            # Translate Windows batch script syntax to AsusWRT zapret paths
+            # 1. Remove Windows line continuations (^)
+            # 2. Replace %BIN% with /opt/zapret/files/fake/
+            # 3. Replace %LISTS% with /opt/zapret/ipset/
+            # 4. Fix any backslashes to forward slashes (except escaped quotes or characters if any, but standard is just replacing backslash in paths)
+            
+            # Using sed for multi-line replacement
+            # Also clean up unassigned Windows variables like %GameFilterTCP% to prevent parsing errors
+            opt=$(echo "$custom_opt" | tr '\n' ' ' | tr '\r' ' ' | sed -e 's/\^//g' \
+                -e 's|%BIN%|/opt/zapret/files/fake/|g' \
+                -e 's|%LISTS%|/opt/zapret/ipset/|g' \
+                -e 's|\\|/|g' \
+                -e 's/,[%][a-zA-Z0-9_]*[%]//g' \
+                -e 's/[%][a-zA-Z0-9_]*[%]/443/g')
             ;;
         *)
             opt="${opt} --payload=tls_client_hello --lua-desync=fake --new"
