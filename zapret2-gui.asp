@@ -179,11 +179,11 @@ function initial() {
         btn.disabled = true;
 
         try {
-            await sendChunk("z2gui_start");
+            await sendChunk("restart_z2gui_start");
             for (let i = 0; i < chunks.length; i++) {
-                await sendChunk("z2gui_chk_" + chunks[i]);
+                await sendChunk("restart_z2gui_chk_" + chunks[i]);
             }
-            await sendChunk("z2gui_apply");
+            await sendChunk("restart_z2gui_apply");
             
             setTimeout(() => {
                 btn.value = 'Settings Applied!';
@@ -212,7 +212,7 @@ function initial() {
     }
 
     function pollMetrics() {
-        sendChunk("z2gui_status").then(() => {
+        sendChunk("restart_z2gui_status").then(() => {
             setTimeout(() => {
                 $.getJSON('/user/user3.asp?t=' + Date.now())
                     .done(function(json) {

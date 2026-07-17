@@ -33,17 +33,17 @@ Action_Event() {
     local payload_file="/tmp/.zapret2gui.payload"
     
     case "$evt" in
-        z2gui_start)
+        restart_z2gui_start)
             rm -f "$payload_file"
             ;;
-        z2gui_chk_*)
-            local chunk="${evt#z2gui_chk_}"
+        restart_z2gui_chk_*)
+            local chunk="${evt#restart_z2gui_chk_}"
             echo -n "$chunk" >> "$payload_file"
             ;;
-        z2gui_apply)
+        restart_z2gui_apply)
             Action_Apply "$payload_file"
             ;;
-        z2gui_status)
+        restart_z2gui_status)
             Action_Generate_Status
             ;;
     esac
