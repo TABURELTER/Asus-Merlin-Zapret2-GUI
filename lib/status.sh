@@ -8,13 +8,13 @@ Get_Status() {
     
     # 1. Check if process is running
     local pid
-    pid=$(pidof tpws 2>/dev/null)
+    pid=$(pidof nfqws 2>/dev/null)
     if [ -n "$pid" ]; then
         process_check=1
     fi
     
-    # 2. Check iptables for REDIRECT
-    if iptables -t nat -L 2>/dev/null | grep -q "REDIRECT"; then
+    # 2. Check iptables for NFQUEUE
+    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE"; then
         iptables_check=1
     fi
     
@@ -40,7 +40,7 @@ Health_Check() {
     
     # 1. Check if process is running
     local pid
-    pid=$(pidof tpws 2>/dev/null)
+    pid=$(pidof nfqws 2>/dev/null)
     if [ -z "$pid" ]; then
         return 1
     fi
@@ -63,7 +63,7 @@ Health_Check() {
     fi
     
     # 3. Check iptables
-    if iptables -t nat -L 2>/dev/null | grep -q "REDIRECT"; then
+    if iptables -t mangle -L 2>/dev/null | grep -q "NFQUEUE"; then
         return 0
     else
         return 1
