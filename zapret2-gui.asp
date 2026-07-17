@@ -62,10 +62,12 @@
     <input type="hidden" name="action_mode" value="Update">
     <input type="hidden" name="action_script" value="restart_zapret2gui_apply">
     <input type="hidden" name="action_wait" value="5">
-    <input type="hidden" name="current_page" value="zapret2-gui.asp">
+    <input type="hidden" name="current_page" value="">
 </form>
 
 <script>
+    document.querySelector('input[name="current_page"]').value = window.location.pathname.split('/').pop();
+
     function toggleCustom() {
         const mode = document.getElementById('mode').value;
         document.getElementById('custom-group').style.display = mode === 'custom' ? 'block' : 'none';
